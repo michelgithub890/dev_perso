@@ -1,20 +1,32 @@
-import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
+import React, { useEffect, createContext } from 'react'
+import { StatusBar } from 'react-native'
+import { NavigationContainer } from '@react-navigation/native'
+import { MODEL_COLORS } from './src/models/modelColors'
+import Tabs from './src/navigation/Tabs'
+import useAuthFirebase from './src/firebase/useAuthFirebase'
+import { PaperProvider } from 'react-native-paper'
 
-export default function App() {
+// CONTEXT
+export const AppContext = createContext()
+
+const App = () => {
+  const { user, _onAuth } = useAuthFirebase() 
+
+  useEffect(() => {
+    _onAuth()
+  },[])
+
   return (
-    <View style={styles.container}>
-      <Text>Open up App.js to start working on your app!</Text>
-      <StatusBar style="auto" />
-    </View>
-  );
+    <PaperProvider>
+      <AppContext.Provider value={{ user }}>
+        <StatusBar barStyle="dark-content" backgroundColor={MODEL_COLORS.light} />
+        <NavigationContainer>
+          <Tabs />
+        </NavigationContainer>
+      </AppContext.Provider>
+    </PaperProvider>
+  )
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});
+export default App
+
