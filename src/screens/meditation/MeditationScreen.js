@@ -5,7 +5,7 @@ import {
     StyleSheet,
     AppState,
 } from 'react-native' 
-import { Button } from 'react-native-paper'
+import { Button, IconButton, Modal, Portal } from 'react-native-paper'
 import { AppContext } from '../../../App'
 import useFirebase from '../../hooks/useFirebase'
 import { format } from 'date-fns'
@@ -21,74 +21,23 @@ const MeditationScreen = () => {
     const { user } = useContext(AppContext) 
     const { _writeData, _deleteData, _updateData, _readPomodoro, _readMeditation, meditation } = useFirebase() 
     const [time, setTime] = useState(null)
+    const [currentDate, setCurrentDate] = useState()
     const [isActive, setIsActive] = useState(false)
     const [buttonsTimes, setButtonsTimes] = useState(true)
     const [buttonStart, setButtonStart] = useState(false)
     const [buttonBreak, setButtonBreak] = useState(false)
     const [buttonOff, setButtonOff] = useState(false)
+    const [buttonSound, setButtonSound] = useState(false)
     const [timeSelected, setTimeSelected] = useState()
-    const [startTime, setStartTime] = useState(null)
-    const [elapsedTime, setElapsedTime] = useState(0)
-    const [appState, setAppState] = useState(AppState.currentState)
+    const [visible, setVisible] = React.useState(false);
+    const showModal = () => setVisible(true)
+    const hideModal = () => setVisible(false)
 
     useEffect(() => {
         _readMeditation(user.uid) 
-        let currentDate = format(new Date(), 'dd/MM/yyyy',)
-        console.log("zen useeffect 1 ", currentDate)
-        // Récupérer les valeurs stockées au lancement de l'application
-        // (async () => {
-        //     const storedStartTime = await AsyncStorage.getItem('meditationStartTime')
-        //     const storedElapsedTime = await AsyncStorage.getItem('meditationElapsedTime')
-    
-        //     if (storedStartTime) setStartTime(Number(storedStartTime))
-        //     if (storedElapsedTime) setElapsedTime(Number(storedElapsedTime))
-        // })();
+        let date = format(new Date(), 'dd/MM/yyyy')
+        setCurrentDate(date)
     },[])
-
-    // useEffect(() => {
-    //     // Récupérer les valeurs stockées au lancement de l'application
-    //     (async () => {
-    //         const storedStartTime = await AsyncStorage.getItem('meditationStartTime');
-    //         const storedElapsedTime = await AsyncStorage.getItem('meditationElapsedTime');
-        
-    //         if (storedStartTime) setStartTime(Number(storedStartTime));
-    //         if (storedElapsedTime) setElapsedTime(Number(storedElapsedTime));
-    //     })()
-    //   }, [])
-
-    // useEffect(() => {
-    //     AppState.addEventListener('change', _handleAppStateChange)
-    
-    //     return () => {
-    //         AppState.removeEventListener('change', _handleAppStateChange)
-    //     }
-    //   }, [])
-    
-    //   const _handleAppStateChange = (nextAppState) => {
-    //     if (appState.match(/inactive|background/) && nextAppState === 'active' && startTime) {
-    //         const elapsedSeconds = Math.floor((Date.now() - startTime) / 1000)
-    //         setElapsedTime(elapsedTime + elapsedSeconds)
-        
-    //         // Enregistrer les valeurs dans le stockage local
-    //         AsyncStorage.setItem('meditationStartTime', startTime.toString())
-    //         AsyncStorage.setItem('meditationElapsedTime', (elapsedTime + elapsedSeconds).toString())
-    //     }
-    //     else if (nextAppState.match(/inactive|background/) && isActive) {
-    //         setStartTime(Date.now())
-    //     }
-    //     setAppState(nextAppState)
-    //   }
-
-    // useEffect(() => {
-    //     console.log("zen useeffect 2")
-    //     AppState.addEventListener('change', _handleAppStateChange);
-        
-    //     return () => {
-    //         // console.log("zen useeffect 3")
-    //         AppState.removeEventListener('change', _handleAppStateChange);
-    //     };
-    // }, []);
-
 
     useEffect(() => {
         let interval = null
@@ -96,11 +45,15 @@ const MeditationScreen = () => {
             interval = setInterval(() => {
                 setTime(time => {
                     if (time === 1) {
-                        console.log("zen time end", )
+                        console.log("zen time end", timeSelected)
+                        setButtonSound(true)
+                        setButtonBreak(false)
+                        _handleSound()
+                        _handlesetTimeout()
                         let currentDate = format(new Date(), 'dd/MM/yyyy')
                         let data = {
-                            date:{currentDate},
-                            time:{timeSelected}
+                            date:currentDate,
+                            time:timeSelected
                         }
                         _writeData(`devperso/${user.uid}/meditation`, data)
                         setIsActive(false)
@@ -116,34 +69,31 @@ const MeditationScreen = () => {
     }, [isActive, time])
 
     const _handleSound = async () => {
-        console.log("PomodoroScreen _handleSound ")
         try {
             // await soundObject.loadAsync(require('./path/to/your/sound/file'))
             await soundObject.loadAsync(sound1)
             await soundObject.playAsync()
+            console.log("PomodoroScreen _handleSound ")
             // Votre son est en train de jouer !
           
             // Pour pauser le son :
             // await soundObject.pauseAsync();
-          } catch (error) {
+        } catch (error) {
+            console.log("PomodoroScreen _handleSound ",error)
             // Une erreur s'est produite
-          }
+        }
     }
 
-    // const _handleAppStateChange = (nextAppState) => {
-    //     if (appState.match(/inactive|background/) && nextAppState === 'active' && startTime) {
-    //         const elapsedSeconds = Math.floor((Date.now() - startTime) / 1000)
-    //         setElapsedTime(elapsedTime + elapsedSeconds)
-        
-    //         // Enregistrer les valeurs dans le stockage local
-    //         AsyncStorage.setItem('meditationStartTime', startTime.toString())
-    //         AsyncStorage.setItem('meditationElapsedTime', (elapsedTime + elapsedSeconds).toString())
-    //     }
-    //     else if (nextAppState.match(/inactive|background/) && isActive) {
-    //         setStartTime(Date.now())
-    //     }
-    //         setAppState(nextAppState)
-    // }
+    const _stopSound = async () => {
+        try {
+            await soundObject.stopAsync()
+            await soundObject.unloadAsync()
+        } catch (error) {
+            // An error occurred
+        }
+        setButtonSound(false)
+        setButtonsTimes(true)
+    }
 
     // TEST  
     const _myTest = () => {
@@ -158,6 +108,7 @@ const MeditationScreen = () => {
     }
 
     const _handleTimeSelection = (minutes) => {
+        console.log('_handleTimeSelection ', minutes)
         // off buttons time selected
         setButtonsTimes(false)
         // on button start 
@@ -194,16 +145,129 @@ const MeditationScreen = () => {
         setTime(null)
     }
 
+    const _handlesetTimeout = () => {
+        setTimeout(() => {
+            _stopSound()
+        }, 10000) // Le temps est en millisecondes, donc 10000 millisecondes équivalent à 10 secondes.
+        
+    }
+
+    const _historyMeditation = () => {
+
+        let array = []
+
+        // let dataByDay = meditation?.reduce((acc, obj) => {
+        //     const date = obj.date.split('/').reverse().join('-')
+        //     if (!acc[date]) acc[date] = []
+        //     acc[date].push(obj.time)
+        //     return acc
+        // })
+
+        const result = meditation?.reduce((accumulator, currentValue) => {
+            // Si la clé date n'existe pas encore dans l'accumulateur, ajoutez-la avec la valeur de time.
+            console.log("zen history current date ", currentDate, accumulator, "=>" ,currentValue.date)
+            if (!accumulator[currentValue.date]) {
+                console.log("zen history current date if", currentDate, accumulator, "=>" ,currentValue.date)
+                accumulator[currentValue.date] = currentValue.time
+            }
+            // Sinon, ajoutez la valeur de time à la clé date existante.
+            else {
+                accumulator[currentValue.date] += currentValue.time
+            }
+        
+            // Renvoyez l'accumulateur pour le prochain tour de boucle.
+            return accumulator
+        }, {})
+        
+        console.log(result)
+        
+
+        console.log("zen _historyMeditation ", )
+        
+        // function getSumOfLastDays(arr, days) {
+        //     const cutOff = new Date();
+        //     cutOff.setDate(cutOff.getDate() - days);
+          
+        //     // Organisez les données par jour
+        //     const dataByDay = arr.reduce((acc, obj) => {
+        //         const date = obj.date.split('/').reverse().join('-');
+        //         if (!acc[date]) acc[date] = [];
+        //         acc[date].push(obj.time);
+        //         return acc;
+        //     }, {});
+            
+        //     // Calculez la somme des temps pour chaque jour
+        //     const sumsByDay = Object.entries(dataByDay)
+        //         .filter(([date,]) => new Date(date) >= cutOff)
+        //         .reduce((acc, [date, times]) => {
+        //             acc[date] = times.reduce((acc, time) => acc + time, 0);
+        //             return acc;
+        //         }, {});
+            
+        //     return sumsByDay;
+        // }
+        
+        // const sumLast10Days = getSumOfLastDays(meditation, 10);
+        // console.log(sumLast10Days);
+        
+    }
+
+    const _testMethode = () => {
+            const dataArray = [
+                {date:'23/07/2023', time:10},
+                {date:'22/07/2023', time:10},
+                {date:'22/07/2023', time:5},
+                {date:'21/07/2023', time:5},
+                // more data here
+            ];
+        
+            function formatDate(dateString) {
+                const [month, day, year] = dateString.split('/')
+                return `${year}-${month}-${day}`
+            }
+        
+            function getSumOfLastDays(arr, days) {
+                const cutOff = new Date()
+                cutOff.setDate(cutOff.getDate() - days)
+
+        
+                const dataByDay = arr.reduce((acc, obj) => {
+                    const date = formatDate(obj.date)
+                    // const date = obj.date
+                    // console.log('cutOff', acc[date])
+                    if (!acc[date]) acc[date] = []
+                    acc[date].push(obj.time)
+                    return acc
+                }, {})
+        
+                const sumsByDay = Object.entries(dataByDay)
+                .filter(([date,]) => new Date(date).setHours(0,0,0,0) >= cutOff.setHours(0,0,0,0))
+                .map(([date, times]) => {
+                    const sumTime = times.reduce((acc, time) => acc + time, 0)
+                    return {
+                        date,
+                        time: Math.floor(sumTime)
+                    }
+                })
+        
+                return sumsByDay
+            }
+        
+            const sumLast10Days = getSumOfLastDays(meditation, 10)
+            console.log("sum as 10 days",sumLast10Days)
+
+            return sumLast10Days
+        
+    }
+
     return (
         <View style={styles.container}>
-
-            <Text>Current app state is: {appState}</Text>
 
             <Text style={styles.timer}>{formatTime(time)}</Text>
 
             {buttonsTimes &&
                 <View style={styles.viewButton}>
-                    <Button mode='outlined' style={styles.buttonTime} onPress={() => _handleTimeSelection(1)} textColor={MODEL_COLORS.main}>5</Button>
+                    <Button mode='outlined' style={styles.buttonTime} onPress={() => _handleTimeSelection(5)} textColor={MODEL_COLORS.main}>5</Button>
                     <Button mode='outlined' style={styles.buttonTime} onPress={() => _handleTimeSelection(10)} textColor={MODEL_COLORS.main}>10</Button>
                     <Button mode='outlined' style={styles.buttonTime} onPress={() => _handleTimeSelection(20)} textColor={MODEL_COLORS.main}>20</Button>
                 </View>
@@ -224,8 +288,25 @@ const MeditationScreen = () => {
                 </View>
             }
 
-            <Button icon="camera" mode="contained" onPress={_handleSound}></Button>
+            {buttonSound && 
+                <Button mode='contained' onPress={_stopSound} style={styles.buttonStart} buttonColor={MODEL_COLORS.main}>stop</Button>
+            }
 
+            <IconButton size={40} icon="history" iconColor={MODEL_COLORS.main} onPress={showModal} style={styles.element}/>
+
+            <Portal>
+                <Modal visible={visible} onDismiss={hideModal} contentContainerStyle={styles.modal}>
+                    <Text>This is a modal</Text>
+                    <Button mode="contained" onPress={_testMethode}>press me</Button>
+                    {_testMethode().map((history,i) => (
+                        <View key={i}>
+                            <Text>{history.date} : {history.time}</Text>
+                        </View>
+                    ))}
+                    <IconButton size={40} icon="close" iconColor={MODEL_COLORS.main} onPress={hideModal} style={styles.close}/>
+                </Modal>
+            </Portal>
+           
         </View>
     )
 }
@@ -257,6 +338,23 @@ const styles = StyleSheet.create({
     buttonStart: {
         paddingStart:30,
         paddingEnd:30,
+    },
+    element: {
+        position: 'absolute',
+        right: 0,
+        bottom: 0,
+        marginRight:20,
+        marginBottom:20,
+    },
+    modal: {
+        backgroundColor: 'white', 
+        height:"100%",
+        width:"100%",
+    },
+    close: {
+        position: 'absolute',
+        right: 0,
+        top: 0,
     }
 })
 

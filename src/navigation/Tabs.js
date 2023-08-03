@@ -8,6 +8,7 @@ import { MODEL_COLORS } from '../models/modelColors'
 import IASreen from '../screens/ia/IASreen'
 import AuthScreen from '../screens/auth/AuthScreen'
 import RewardsScreen from '../screens/rewards/RewardsScreen'
+import GoalsScreen from '../screens/goals/GoalsScreen'
 
 const Stack = createNativeStackNavigator()
 
@@ -17,12 +18,12 @@ const Tabs = () => {
             <Stack.Screen 
                 name="Home" 
                 component={HomeScreen} 
-                options={{ headerShown: false }}
+                options={{ headerShown: false }} 
             />
             <Stack.Screen 
                 name="cravings" 
-                component={CravingsScreen} 
-                options={{ title: 'Envies', headerStyle: { backgroundColor:MODEL_COLORS.light } }}
+                component={GoalsScreen} 
+                options={{ title: 'Objectifs', headerStyle: { backgroundColor:MODEL_COLORS.light } }}
             />
             <Stack.Screen 
                 name="pomodoro" 
@@ -37,7 +38,7 @@ const Tabs = () => {
             <Stack.Screen 
                 name="ia" 
                 component={IASreen} 
-                options={{ title: 'IA', headerStyle: { backgroundColor:MODEL_COLORS.light } }}
+                options={{ title: 'Motivations', headerStyle: { backgroundColor:MODEL_COLORS.light } }}
             /> 
             <Stack.Screen 
                 name="auth" 

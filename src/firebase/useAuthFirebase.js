@@ -45,16 +45,16 @@ const useAuthFirebase = () => {
     //         })
     // }
  
-    // const _signOut = () => {
-    //     console.log('useAuth _signOut method')
-    //     signOut(auth).then(() => {
-    //         console.log('useAuth _signOut OK ')
-    //         setCount(count+1)
-    //         _onAuth()
-    //     }).catch((error) => {
-    //         console.log(error)
-    //     })
-    // }
+    const _signOut = () => {
+        console.log('useAuth _signOut method')
+        signOut(auth).then(() => {
+            console.log('useAuth _signOut OK ')
+            setCount(count+1)
+            _onAuth()
+        }).catch((error) => {
+            console.log(error)
+        })
+    }
 
     const _onAuth = () => {
         onAuthStateChanged(auth, (user) => {
@@ -66,13 +66,13 @@ const useAuthFirebase = () => {
         })
     }
 
-    // const _forgotPassword = (email) => {
-    //     sendPasswordResetEmail(auth, email)
-    //         .then(() => {
-    //             setShowModalForgetPassword(true)
-    //             // alert('Un lien a été envoyé sur votre boîte mail')
-    //         })
-    // }
+    const _forgotPassword = (email) => {
+        sendPasswordResetEmail(auth, email)
+            .then(() => {
+                // setShowModalForgetPassword(true)
+                alert('Un lien a été envoyé sur votre boîte mail')
+            })
+    }
 
     // IF EMAIL EXIST
     // const _checkIfEmailExists = (email) => {
@@ -104,8 +104,8 @@ const useAuthFirebase = () => {
         user, 
         _onAuth,  
         _signIn, 
-        // _signOut,  
-        // _forgotPassword, 
+        _signOut,  
+        _forgotPassword, 
         // _signUp, 
         // showModal,
         // setShowModal,

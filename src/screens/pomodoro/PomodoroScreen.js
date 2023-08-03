@@ -6,12 +6,15 @@ import { format } from 'date-fns'
 import { fr } from 'date-fns/locale'
 import { MODEL_COLORS } from '../../models/modelColors'
 import useFirebase from '../../hooks/useFirebase' 
-import sound1 from '../../sound/sound1.wav'
+// SOUND 
+import alarm from '../../sound/alarme.wav'
+import metronome from '../../sound/metronome.wav'
 import { Audio } from 'expo-av'
+// IMAGE 
 import cebu5 from '../../../assets/image913.png'
 
-const soundObject = new Audio.Sound()
-
+const soundAlarm = new Audio.Sound()
+const soundMetronome = new Audio.Sound()
 
 // var ding = new Sound('ding.mp3', Sound.MAIN_BUNDLE, (error) => {
 //     if (error) {
@@ -37,50 +40,53 @@ const PomodoroScreen = () => {
     const [day, setDay] = useState()
     const [lines, setLines] = useState([0])
     const [listPomorodo, setListPomodoro] = useState(0)
+    const [isFinish, setIsFinish] = useState(false)
     const [time, setTime] = useState(null)
     const [isActive, setIsActive] = useState(false)
     const [selectedTime, setSelectedTime] = useState(25 * 60)
-    const { _writeData, _deleteData, _updateData, _readPomodoro } = useFirebase()
+    const { _writeData, _deleteData, _updateData, _readPomodoro, pomodoro } = useFirebase()
     // MODAL 
     const [modalVisible, setModalVisible] = useState(false)
+    let playCount = 0
 
     useEffect(() => {
         let currentDate = format(new Date(), 'eeee d MMMM yyyy', { locale: fr })
         setDay(currentDate)
-        if (user.uid) _readPomodoro(user.uid)
+        _readPomodoro(user.uid)
         console.log("PomodoroScreen useEffect", user.uid)
     },[])
 
     useEffect(() => {
         let interval = null
         if (isActive) {
-            interval = setInterval(() => {
+            interval = setInterval(() => { 
                 setTime(time => {
                     if (time === 1) {
-                        // Jouer le son lorsque le chronomètre atteint zéro
-                        alarmSound.play((success) => {
-                            if (!success) {
-                                console.log('Sound did not play')
-                            }
-                        });
+                        console.log("zen time end")
+                        // le time est fini 
+                        setIsFinish(true)
+                        _startAlarm()
+                        _stopMetronome()
+                        clearInterval(interval)
                     }
                     return time - 1
                 })
             }, 1000)
-        } else if (!isActive && time !== 0) {
-            clearInterval(interval);
+        // } else if (!isActive && time !== 0) {
+        } else if (!isActive) {
+            clearInterval(interval)
         }
         return () => clearInterval(interval)
-    }, [isActive, time])
-
-    const handleStart = () => {
-        setTime(selectedTime)
-        setIsActive(true)
-    }
+    }, [isActive])
 
     const handleTimeSelection = (minutes) => {
         setSelectedTime(minutes * 60) // Conversion en secondes
-        setTime(minutes * 60)
+        setTime(minutes * 60) 
+        setModalVisible(!modalVisible)
+        _handleStartPomodoro()
+        if (minutes === 25) {
+            _startSound()
+        }
     }
 
     const formatTime = (time) => {
@@ -90,85 +96,167 @@ const PomodoroScreen = () => {
         return `${('0' + minutes).slice(-2)}:${('0' + seconds).slice(-2)}`
     }
 
-    const _handlePomodoro = (id) => {
-        console.log("PomodoroScreen _handlePomodoro", user.uid, id)
+    const _handlePomodoro = () => {
+        console.log("PomodoroScreen _handlePomodoro", )
         setModalVisible(true)
         // const data = {
         //     mydata:"michel"
         // }
         // _writeData(`devperso/${user.uid}/pomodoro`, data)
-    }  
-
-    const addLine = () => {
-        console.log("pomodoro ", )
-        setLines([...lines, lines.length * 4]); // adds a new line starting with next id
+    } 
+    
+    const _handleNewPomodoro = () => {
+        const data = {
+            date:day,
+        }
+        console.log('pomorodo ', day)
+        _writeData(`devperso/${user.uid}/pomodoro`, data)
     }
 
-    const _handleSound = async () => {
-        console.log("PomodoroScreen _handleSound ")
+    const _startSound = async () => {
+        setIsActive(true)
         try {
-            // await soundObject.loadAsync(require('./path/to/your/sound/file'))
-            await soundObject.loadAsync(sound1)
-            await soundObject.playAsync()
-            // Votre son est en train de jouer !
-          
-            // Pour pauser le son :
-            // await soundObject.pauseAsync();
-          } catch (error) {
-            // Une erreur s'est produite
-          }
+            // await soundObject.loadAsync(alarme)
+            const status = await soundMetronome.getStatusAsync()
+            if (status.isLoaded) {
+                await soundMetronome.playAsync()
+            } else {
+                await soundMetronome.loadAsync(metronome)
+                await soundMetronome.playAsync()
+            }
+            // This function will be called whenever the playback status changes
+            soundMetronome.setOnPlaybackStatusUpdate(async (status) => {
+            if (status.didJustFinish) {
+                    playCount++
+                    if (playCount < 50) {
+                    await soundMetronome.stopAsync()
+                    await soundMetronome.playAsync()
+                } else {
+                setIsActive(false)
+                }
+            }
+            });
+        
+            // Start the first playback
+            await soundMetronome.playAsync()
+        } catch (error) {
+            console.log("PomodoroScreen _handleSound ", error)
+        }
+    }
+      
+
+    const _supendSound = async () => {
+        try {
+            await soundObject.pauseAsync(sound1)
+        } catch (error) {
+            console.log("PomodoroScreen _handleSound ",error)
+        }
     }
 
-    const _startPomorodo = () => {
-        console.log("PomodoroScreen _startPomorodo")
+    const _stopAlarm = async () => {
+        setIsFinish(false)
+        // await soundObject.loadAsync()
+        try {
+            await soundAlarm.stopAsync(alarm)
+        } catch (error) {
+            console.log("PomodoroScreen _stopAlarm ",error)
+        }
+    }
+
+    const _stopMetronome = async () => {
+        try {
+            await soundMetronome.stopAsync(metronome)
+        } catch (error) {
+            console.log("PomodoroScreen _stopMetronome ",error)
+        }
+    }
+
+    const _startAlarm = async () => {
+        try {
+            const status = await soundAlarm.getStatusAsync()
+            if (status.isLoaded) {
+                await soundAlarm.playAsync()
+            } else {
+                await soundAlarm.loadAsync(alarm)
+                await soundAlarm.playAsync()
+            }
+        } catch (error) {
+            console.log('pomorodo _startAlarme', error)
+        }
+    }
+
+    const _handleStartPomodoro = () => {
+        console.log('_handleStartPomodoro', selectedTime, time)
+        setIsActive(true)
+    }
+
+    const _closeModal = async () => {
+        setIsFinish(false)
+        setModalVisible(!modalVisible)
+        try {
+            await soundMetronome.stopAsync(metronome)
+        } catch {}
+        try {
+            await soundAlarm.stopAsync(alarm)
+        } catch {}
     }
 
     return (
         <View>
 
             <Text style={styles.date}>{day}</Text>
-            
-            {/* {lines.map((startId, index) => <Line key={index} startId={startId} />)} */}
 
-            {lines.map((startId, index) => (
-                <View style={styles.viewBox} key={index}>
-                    {[0, 1, 2, 3].map(i => (
-                        <TouchableOpacity key={startId + i} style={styles.box} onPress={() => _handlePomodoro(startId + i)} />
-                    ))}
+            {/* {pomodoro.filter(pomo => pomo.date === day).length > 0 ? null : 
+                <Button mode='contained' style={{ marginStart:20, marginEnd:20 }} buttonColor={MODEL_COLORS.main} onPress={_handleNewPomodoro}>Nouvelle journée</Button>
+            } */}
+
+            {pomodoro.filter(pomo => pomo.date === day).map(pomo => (
+                <View key={pomo.id} style={styles.viewBox}>
+                    <TouchableOpacity /* key={startId + i} */ style={styles.box} onPress={() => _handlePomodoro(startId + i)} />
                 </View>
             ))}
 
-            <Button onPress={addLine} mode="contained" style={{ margin:10 }} buttonColor='red'>Ajouter une ligne</Button>
+            <View style={{ height:50 }} />
 
-            <Button onPress={_handleSound} mode="contained" style={{ margin:10 }}>handle sound</Button>
+            <View style={styles.viewBox}>
+                <Button 
+                    onPress={() => handleTimeSelection(25)} 
+                    mode="contained" 
+                    style={styles.boxAdd}
+                    labelStyle={{ fontSize: 20, color: 'white' }}
+                >25
+                </Button>
 
-            <View>
-                <Text>{formatTime(time)}</Text>
-                <Button onPress={handleStart}>Démarrer</Button>
-                <Button onPress={() => handleTimeSelection(25)} mode="contained" style={{ margin:10 }}>25 minutes</Button>
-                <Button onPress={() => handleTimeSelection(15)} mode="contained" style={{ margin:10 }}>15 minutes</Button>
-                <Button onPress={() => handleTimeSelection(5)} mode="contained" style={{ margin:10 }}>5 minutes</Button>
+                <Button 
+                    onPress={() => handleTimeSelection(5)} 
+                    mode="contained" 
+                    style={styles.box5}
+                    labelStyle={{ fontSize: 20, color: 'white' }}
+                >5
+                </Button>
+
+                <Button 
+                    onPress={() => handleTimeSelection(15)} 
+                    mode="contained" 
+                    style={styles.box15}
+                    labelStyle={{ fontSize: 20, color: 'white' }}
+                >15
+                </Button>
             </View>
 
-            <TouchableOpacity onPress={() => setModalVisible(!modalVisible)}>
-                <Text>Afficher le modal</Text>
-            </TouchableOpacity>
-
-            <Text>4 pomodoro</Text>
-            <Text>pauses 5 et 15 pomodoro</Text>
-            <Text>delete - suspendre - reprendre ...</Text>
-
             <Portal>
-                <Modal visible={modalVisible} onDismiss={() => setModalVisible(!modalVisible)} contentContainerStyle={[styles.modal, { justifyContent: "flex-start", padding: 0 }]}>
+                <Modal visible={modalVisible} onDismiss={_closeModal} contentContainerStyle={[styles.modal, { justifyContent: "flex-start", padding: 0 }]}>
                     <ImageBackground source={cebu5} style={styles.backgroundImage}>
                         <View style={styles.overlay}>
                             <View style={{ position: 'absolute', top: 10, right: 10 }}>
-                                <IconButton onPress={() => setModalVisible(!modalVisible)} icon="close" size={30} iconColor="white" />
+                                <IconButton onPress={_closeModal} icon="close" size={30} iconColor="white" />
                             </View>
                             <Text style={styles.modalTime}>{formatTime(time)}</Text>
-                            <View style={{ marginTop:20 }}>
-                                <Button mode="outlined" buttonColor='white'>Start</Button>
-                            </View>
+                            {isFinish && 
+                                <View style={{ marginTop:20 }}>
+                                    <Button mode="outlined" buttonColor='white' onPress={_stopAlarm}>Stop</Button>
+                                </View> 
+                            }
                         </View> 
                     </ImageBackground>
                 </Modal>
@@ -219,6 +307,40 @@ const styles = StyleSheet.create({
     modalTime:{
         fontSize:60,
         color:"white"
+    },
+    boxAdd: {
+        backgroundColor: MODEL_COLORS.purple,
+        width: 75,
+        height: 75,
+        borderRadius: 10,
+        display: "flex",
+        flexDirection: "row",
+        alignItems: "center",    // Align items along the vertical axis
+        justifyContent: "center" // Align items along the horizontal axis
+    },    
+    box5: {
+        backgroundColor:MODEL_COLORS.orange,
+        width:75,
+        height:75,
+        borderRadius:10,
+        display: "flex",
+        flexDirection: "row",
+        alignItems: "center",    // Align items along the vertical axis
+        justifyContent: "center" // Align items along the horizontal axis
+    },
+    box15: {
+        backgroundColor:MODEL_COLORS.main,
+        width:75,
+        height:75,
+        borderRadius:10,
+        display: "flex",
+        flexDirection: "row",
+        alignItems: "center",    // Align items along the vertical axis
+        justifyContent: "center" // Align items along the horizontal axis
+    },
+    textButton: {
+        color:"white",
+        fontSize:30,
     }
 })
 

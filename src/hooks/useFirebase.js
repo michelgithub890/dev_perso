@@ -5,6 +5,9 @@ import database from '../firebase/FirebaseConfig'
 const useFirebase = () => {
     const [pomodoro, setPomodoro] = useState([]) 
     const [meditation, setMeditation] = useState([])
+    const [motivations, setMotivations] = useState([])
+    const [goals, setGoals] = useState([])
+    const [rewards, setRewards] = useState([])
 
     // POMODORO
     const _readPomodoro = (user) => {
@@ -36,6 +39,60 @@ const useFirebase = () => {
                   dataList.push({id,...data[id]})
                 }
                 setMeditation(dataList)
+            })
+        } catch {
+            alert('il y a une erreur dans la lecture',)
+        }
+    }
+
+    // MOTIVATIONS
+    const _readMotivations = (user) => {
+        setMotivations([])
+        const starCountRef = ref(database, `devperso/${user}/motivations`) 
+        try {
+            onValue(starCountRef, (snapshot) => {
+                const data = snapshot.val()
+                const dataList = []
+                for (let id in data) {
+                  dataList.push({id,...data[id]})
+                }
+                setMotivations(dataList)
+            })
+        } catch {
+            alert('il y a une erreur dans la lecture',)
+        }
+    }
+
+    // GOALS 
+    const _readGoals = (user) => {
+        setGoals([])
+        const starCountRef = ref(database, `devperso/${user}/goals`) 
+        try {
+            onValue(starCountRef, (snapshot) => {
+                const data = snapshot.val()
+                const dataList = []
+                for (let id in data) {
+                  dataList.push({id,...data[id]})
+                }
+                setGoals(dataList)
+            })
+        } catch {
+            alert('il y a une erreur dans la lecture',)
+        }
+    }
+
+    // REWARDS  
+    const _readRewards = (user) => {
+        setRewards([])
+        const starCountRef = ref(database, `devperso/${user}/rewards`) 
+        try {
+            onValue(starCountRef, (snapshot) => {
+                const data = snapshot.val()
+                const dataList = []
+                for (let id in data) {
+                  dataList.push({id,...data[id]})
+                }
+                setRewards(dataList)
             })
         } catch {
             alert('il y a une erreur dans la lecture',)
@@ -76,6 +133,15 @@ const useFirebase = () => {
         // MEDITATION
         _readMeditation,
         meditation,
+        // MOTIVATIONS 
+        _readMotivations,
+        motivations,
+        // GOALS 
+        _readGoals,
+        goals,
+        // REWARDS 
+        _readRewards,
+        rewards,
     }
 }
 
