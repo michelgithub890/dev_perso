@@ -2,7 +2,7 @@
   "expo": {
     "name": "dev_perso",
     "slug": "dev_perso",
-    "version": "1.0.0",
+    "version": "1.0.2",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
@@ -21,10 +21,17 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "versionCode": 2,
+      "package": "com.mitch56150.dev_perso"
     },
     "web": {
       "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "f3be07f8-26f8-49b4-93d6-50468433838b"
+      }
     }
   }
 }
