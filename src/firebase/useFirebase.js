@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { ref, set, onValue, push, remove, update } from 'firebase/database'
-import database from '../firebase/FirebaseConfig'
+import database from './FirebaseConfig'
 
 const useFirebase = () => {
     const [pomodoro, setPomodoro] = useState([]) 

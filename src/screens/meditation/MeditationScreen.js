@@ -1,25 +1,30 @@
 import React, { useContext, useEffect, useState } from 'react'
-import {
-    View,
-    Text,
-    StyleSheet,
-    AppState,
-} from 'react-native' 
+// REACT NATIVE 
+import { View, Text, StyleSheet } from 'react-native' 
+// REACT NATIVE PAPER 
 import { Button, IconButton, Modal, Portal } from 'react-native-paper'
+// CONTEXT 
 import { AppContext } from '../../../App'
-import useFirebase from '../../hooks/useFirebase'
+// FIREBASE
+import useFirebase from '../../firebase/useFirebase'
+// DATE FNS 
 import { format } from 'date-fns'
 import { fr } from 'date-fns/locale'
-import AsyncStorage from '@react-native-async-storage/async-storage'
+// MODELS 
 import { MODEL_COLORS } from '../../models/modelColors'
+// SOUND 
 import sound1 from '../../sound/sound1.wav'
 import { Audio } from 'expo-av'
 
+// SOUND 
 const soundObject = new Audio.Sound()
 
 const MeditationScreen = () => {
+    // USER 
     const { user } = useContext(AppContext) 
-    const { _writeData, _deleteData, _updateData, _readPomodoro, _readMeditation, meditation } = useFirebase() 
+    // FIREBASE
+    const { _writeData, _readMeditation, meditation } = useFirebase() 
+    // CONST 
     const [time, setTime] = useState(null)
     const [currentDate, setCurrentDate] = useState()
     const [isActive, setIsActive] = useState(false)
@@ -33,12 +38,14 @@ const MeditationScreen = () => {
     const showModal = () => setVisible(true)
     const hideModal = () => setVisible(false)
 
+    // READ FIREBASE + CURRENT DATE
     useEffect(() => {
         _readMeditation(user.uid) 
         let date = format(new Date(), 'dd/MM/yyyy')
         setCurrentDate(date)
     },[])
 
+    // START AND STOP TIMER 
     useEffect(() => {
         let interval = null
         if (isActive) {
@@ -68,6 +75,7 @@ const MeditationScreen = () => {
         return () => clearInterval(interval)
     }, [isActive, time])
 
+    // START SOUND 
     const _handleSound = async () => {
         try {
             // await soundObject.loadAsync(require('./path/to/your/sound/file'))
@@ -84,6 +92,7 @@ const MeditationScreen = () => {
         }
     }
 
+    // STOP SOUND 
     const _stopSound = async () => {
         try {
             await soundObject.stopAsync()
@@ -95,11 +104,12 @@ const MeditationScreen = () => {
         setButtonsTimes(true)
     }
 
-    // TEST  
+    // FIREBASE WRITE   
     const _myTest = () => {
-        _writeData(`devperso/${user.uid}/meditation`, {michel: "Juliet"});
+        _writeData(`devperso/${user.uid}/meditation`, {michel: "Juliet"})
     }
 
+    // FORMAT DATE 
     const formatTime = (time) => {
         const minutes = Math.floor(time / 60)
         const seconds = time - minutes * 60
@@ -107,6 +117,7 @@ const MeditationScreen = () => {
         return `${('0' + minutes).slice(-2)}:${('0' + seconds).slice(-2)}`
     }
 
+    // CHOICE TIME DURATION 
     const _handleTimeSelection = (minutes) => {
         console.log('_handleTimeSelection ', minutes)
         // off buttons time selected
@@ -117,6 +128,7 @@ const MeditationScreen = () => {
         setTime(minutes * 60)
     }
 
+    // START MEDITATION
     const _handleStart = () => { 
         // off button start  
         setButtonStart(false)
@@ -128,6 +140,7 @@ const MeditationScreen = () => {
         setIsActive(true)
     }
 
+    // BREAK MEDITATION
     const _handleBreak = () => {
         // off button break 
         setButtonBreak(false)
@@ -136,6 +149,7 @@ const MeditationScreen = () => {
         setIsActive(false)
     }
 
+    // STOP MEDITATION 
     const _handleStop = () => {
         // off button continuer pause  
         setButtonOff(false)
@@ -145,6 +159,7 @@ const MeditationScreen = () => {
         setTime(null)
     }
 
+    // TIME OUT 
     const _handlesetTimeout = () => {
         setTimeout(() => {
             _stopSound()
@@ -152,6 +167,7 @@ const MeditationScreen = () => {
         
     }
 
+    // HISTORY MEDIATION => NOT FINISH
     const _historyMeditation = () => {
 
         let array = []
@@ -212,6 +228,7 @@ const MeditationScreen = () => {
         
     }
 
+    // TEST
     const _testMethode = () => {
             const dataArray = [
                 {date:'23/07/2023', time:10},
@@ -263,8 +280,10 @@ const MeditationScreen = () => {
     return (
         <View style={styles.container}>
 
+            {/* CURRENT DATE */}
             <Text style={styles.timer}>{formatTime(time)}</Text>
 
+            {/* BUTTON CHOICE DURATION */}
             {buttonsTimes &&
                 <View style={styles.viewButton}>
                     <Button mode='outlined' style={styles.buttonTime} onPress={() => _handleTimeSelection(5)} textColor={MODEL_COLORS.main}>5</Button>
@@ -273,14 +292,17 @@ const MeditationScreen = () => {
                 </View>
             }
 
+            {/* BUTTON START */}
             {buttonStart && 
                 <Button mode='contained' onPress={_handleStart} style={styles.buttonStart} buttonColor={MODEL_COLORS.main}>start</Button>
             }
 
+            {/* BUTTON BREAK */}
             {buttonBreak && 
                 <Button mode='outlined' onPress={_handleBreak} style={styles.buttonStart} textColor={MODEL_COLORS.main}>pause</Button>
             }
 
+            {/* BUTTON START END */}
             {buttonOff && 
                 <View style={styles.viewButton}>
                     <Button mode='outlined' onPress={_handleStart} textColor={MODEL_COLORS.main} style={styles.buttonTime}>continuer</Button>
@@ -288,12 +310,14 @@ const MeditationScreen = () => {
                 </View>
             }
 
+            {/* BUTTON STOP */}
             {buttonSound && 
                 <Button mode='contained' onPress={_stopSound} style={styles.buttonStart} buttonColor={MODEL_COLORS.main}>stop</Button>
             }
 
             <IconButton size={40} icon="history" iconColor={MODEL_COLORS.main} onPress={showModal} style={styles.element}/>
 
+            {/* MODAL TIMER + BACKGROUND IMAGE */}
             <Portal>
                 <Modal visible={visible} onDismiss={hideModal} contentContainerStyle={styles.modal}>
                     <Text>This is a modal</Text>
@@ -313,6 +337,7 @@ const MeditationScreen = () => {
 
 export default MeditationScreen
 
+// STYLE DESIGN 
 const styles = StyleSheet.create({
     container: {
         display: 'flex',

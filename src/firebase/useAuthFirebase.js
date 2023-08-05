@@ -7,18 +7,19 @@ import { auth } from './FirebaseConfig'
 
 const useAuthFirebase = () => { 
     const [user, setUser] = useState({})
+    // const [myRedir, setMyredir] = useState() 
     // const { writeData, updateData } = useFirebase()  
     // const [showModal, setShowModal] = useState(false) 
     // const [titleModal, setTitleModal] = useState(false)
     // const [showModalForgetPassword, setShowModalForgetPassword] = useState(false)
     // const [codeError, setCodeError] = useState()
-    // const [myRedir, setMyredir] = useState() 
  
     const _signIn = async (email, password) => { 
         signInWithEmailAndPassword(auth, email, password)
             .then((useCredential) => {
                 const user = useCredential.user
                 console.log('useauthfirebase signin ok')
+                // setMyredir('ok')
             })  
             .catch(() => {
                 console.log('email ou mot de passe incorrect')
@@ -112,7 +113,6 @@ const useAuthFirebase = () => {
         // titleModal,
         // setTitleModal,
         // codeError,
-        // myRedir,
         // _checkIfEmailExists,
         // showModalForgetPassword,
         // setShowModalForgetPassword,

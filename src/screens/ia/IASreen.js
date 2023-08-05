@@ -1,29 +1,48 @@
 import React, { useEffect, useState, useContext } from 'react'
-import { View, Text, Alert } from 'react-native'
+// REACT NATIVE 
+import { View, Alert, StyleSheet } from 'react-native'
+// REACT NATIVE PAPER 
 import { Button, TextInput, Card  } from 'react-native-paper'
-import useFirebase from '../../hooks/useFirebase'
+// FIREBASE 
+import useFirebase from '../../firebase/useFirebase'
+// CONTEXT 
 import { AppContext } from '../../../App'
+// MODELS 
 import { MODEL_COLORS } from '../../models/modelColors'
+// FORMULAIRE 
+import useForm from '../../hooks/useForm'
+
+// VALUES 
+const INITIAL_STATE = {
+    title:'',
+}
 
 const IASreen = () => {
+    // USER 
     const { user } = useContext(AppContext) 
+    // FIREBASE 
     const { _readMotivations, motivations, _writeData, _deleteData } = useFirebase()
-    const [title, setTitle] = useState('')
+    // FORMULAIRE 
+    const { _handleChange, values } = useForm(INITIAL_STATE) 
+    // CONST 
     const [showInput, setShowInput] = useState(false)
 
+    // READ MOTIVATION 
     useEffect(() => {
         _readMotivations(user.uid)
     },[])
 
+    // ADD MOTIVATION
     const _handleAddMotivation = () => {
         const data = {
-            title:title
+            title:values.title
         }
         _writeData(`devperso/${user.uid}/motivations`, data)
         _handleShowInput()
         setTitle()
     }
 
+    // DELETE MOTIVATION
     const _handleDeleteMotivation = (idMotivation) => {
         Alert.alert(
             "Supprimer la motivation",
@@ -41,23 +60,53 @@ const IASreen = () => {
         
     }
 
+    // SHOW INPUT TEXT 
     const _handleShowInput = () => {
         setShowInput(!showInput)
     }
 
     return (
         <View>
+
             {showInput ? 
+
                 <View>
-                    <TextInput label='titre' value={title} textColor={MODEL_COLORS.main} onChangeText={setTitle} name='title' style={{ margin:10 }} />
-                    <View style={{ display:"flex", flexDirection:"row", justifyContent:"center" }}>
-                        <Button mode="contained" disabled={title ? false : true} buttonColor={MODEL_COLORS.main} onPress={_handleAddMotivation} style={{ margin:10 }}>Enregistrer</Button>
-                        <Button mode="contained" buttonColor={MODEL_COLORS.orange} onPress={_handleShowInput} style={{ margin:10 }}>Annuler</Button>
+
+                    {/* INPUT TITLE */}
+                    <TextInput 
+                        label='titre' 
+                        value={values.title} 
+                        textColor={MODEL_COLORS.main} 
+                        style={styles.input}
+                        onChangeText={(text) => _handleChange('title', text)}
+                    />
+
+                    {/* BUTTON SAVE CANCEL */}
+                    <View style={styles.viewButton}>
+
+                        <Button 
+                            mode="contained" 
+                            disabled={values.title ? false : true} 
+                            buttonColor={MODEL_COLORS.main} 
+                            onPress={_handleAddMotivation} 
+                            style={{ margin:10 }}
+                        >Enregistrer</Button>
+
+                        <Button 
+                            mode="contained" 
+                            buttonColor={MODEL_COLORS.orange} 
+                            onPress={_handleShowInput} 
+                            style={{ margin:10 }}
+                        >Annuler</Button>
                     </View>
+
                 </View>
+
             :
                 <Button mode="contained" buttonColor={MODEL_COLORS.main} onPress={_handleShowInput} style={{ margin:10 }}>Ajouter</Button>
             }
+
+            {/* LIST MOTIVATION */}
             {motivations.map(motivation => (
                 <Card key={motivation.id} style={{ marginTop:10 }} onPress={() => _handleDeleteMotivation(motivation.id)}>
                     <Card.Title title={motivation.title} />
@@ -70,3 +119,19 @@ const IASreen = () => {
 
 export default IASreen
 
+// STYLE DESIGN 
+const styles = StyleSheet.create({
+    viewButton: {
+        display:"flex", 
+        flexDirection:"row", 
+        justifyContent:"center",
+    },
+    input: {
+        height: 40, 
+        marginTop:20, 
+        marginStart:20, 
+        marginEnd:20 , 
+        paddingStart:10,
+        backgroundColor:MODEL_COLORS.ultraLight,
+    },
+})

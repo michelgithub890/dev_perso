@@ -1,11 +1,17 @@
 import React, { useState, useEffect, useContext } from 'react'
+// REACT NATIVE 
 import { View, Text, StyleSheet, TouchableOpacity, ImageBackground } from 'react-native'
+// REACT NATIVE PAPER 
 import { Button, Portal, Modal, IconButton } from 'react-native-paper'
+// CONTEXT 
 import { AppContext } from '../../../App'
+// DATE FNS 
 import { format } from 'date-fns'
 import { fr } from 'date-fns/locale'
+// MODELS 
 import { MODEL_COLORS } from '../../models/modelColors'
-import useFirebase from '../../hooks/useFirebase' 
+// FIREBASE 
+import useFirebase from '../../firebase/useFirebase' 
 // SOUND 
 import alarm from '../../sound/alarme.wav'
 import metronome from '../../sound/metronome.wav'
@@ -13,42 +19,26 @@ import { Audio } from 'expo-av'
 // IMAGE 
 import cebu5 from '../../../assets/image913.png'
 
+// SOUND 
 const soundAlarm = new Audio.Sound()
 const soundMetronome = new Audio.Sound()
 
-// var ding = new Sound('ding.mp3', Sound.MAIN_BUNDLE, (error) => {
-//     if (error) {
-//       console.log('failed to load the sound', error)
-//       return
-//     }
-//     // when loaded successfully
-//     console.log('duration in seconds: ' + whoosh.getDuration() + 'number of channels: ' + whoosh.getNumberOfChannels())
-// })
-
-// Sound.setCategory('Playback')
-
-const Line = ({ startId }) => (
-    <View style={styles.viewBox}>
-        {[0, 1, 2, 3].map(i => (
-            <TouchableOpacity key={startId + i} style={styles.box} onPress={() => _handlePomodoro(startId + i)} />
-        ))}
-    </View>
-)
-
 const PomodoroScreen = () => {
+    // CONTEXT 
     const { user } = useContext(AppContext) 
+    // FIREBASE 
+    const { _readPomodoro, pomodoro } = useFirebase()
+    // CONST 
     const [day, setDay] = useState()
-    const [lines, setLines] = useState([0])
-    const [listPomorodo, setListPomodoro] = useState(0)
     const [isFinish, setIsFinish] = useState(false)
     const [time, setTime] = useState(null)
     const [isActive, setIsActive] = useState(false)
     const [selectedTime, setSelectedTime] = useState(25 * 60)
-    const { _writeData, _deleteData, _updateData, _readPomodoro, pomodoro } = useFirebase()
     // MODAL 
     const [modalVisible, setModalVisible] = useState(false)
     let playCount = 0
 
+    // AT BUILD PAGE
     useEffect(() => {
         let currentDate = format(new Date(), 'eeee d MMMM yyyy', { locale: fr })
         setDay(currentDate)
@@ -56,6 +46,7 @@ const PomodoroScreen = () => {
         console.log("PomodoroScreen useEffect", user.uid)
     },[])
 
+    // START TIMER => END TIMER
     useEffect(() => {
         let interval = null
         if (isActive) {
@@ -79,6 +70,7 @@ const PomodoroScreen = () => {
         return () => clearInterval(interval)
     }, [isActive])
 
+    // CHOICE TIME DURATION 
     const handleTimeSelection = (minutes) => {
         setSelectedTime(minutes * 60) // Conversion en secondes
         setTime(minutes * 60) 
@@ -89,6 +81,7 @@ const PomodoroScreen = () => {
         }
     }
 
+    // FORMAT TIME 
     const formatTime = (time) => {
         const minutes = Math.floor(time / 60)
         const seconds = time - minutes * 60
@@ -96,6 +89,7 @@ const PomodoroScreen = () => {
         return `${('0' + minutes).slice(-2)}:${('0' + seconds).slice(-2)}`
     }
 
+    // ADD POMODORO FIREBASE
     const _handlePomodoro = () => {
         console.log("PomodoroScreen _handlePomodoro", )
         setModalVisible(true)
@@ -105,14 +99,15 @@ const PomodoroScreen = () => {
         // _writeData(`devperso/${user.uid}/pomodoro`, data)
     } 
     
-    const _handleNewPomodoro = () => {
-        const data = {
-            date:day,
-        }
-        console.log('pomorodo ', day)
-        _writeData(`devperso/${user.uid}/pomodoro`, data)
-    }
+    // const _handleNewPomodoro = () => {
+    //     const data = {
+    //         date:day,
+    //     }
+    //     console.log('pomorodo ', day)
+    //     _writeData(`devperso/${user.uid}/pomodoro`, data)
+    // }
 
+    // START SOUND => AND REPEAT SOUND
     const _startSound = async () => {
         setIsActive(true)
         try {
@@ -144,7 +139,7 @@ const PomodoroScreen = () => {
         }
     }
       
-
+    // SUSPEND SOUND
     const _supendSound = async () => {
         try {
             await soundObject.pauseAsync(sound1)
@@ -153,16 +148,13 @@ const PomodoroScreen = () => {
         }
     }
 
-    const _stopAlarm = async () => {
-        setIsFinish(false)
-        // await soundObject.loadAsync()
-        try {
-            await soundAlarm.stopAsync(alarm)
-        } catch (error) {
-            console.log("PomodoroScreen _stopAlarm ",error)
-        }
+    // START METRONOME
+    const _handleStartPomodoro = () => {
+        console.log('_handleStartPomodoro', selectedTime, time)
+        setIsActive(true)
     }
-
+    
+    // STOP METRONOME
     const _stopMetronome = async () => {
         try {
             await soundMetronome.stopAsync(metronome)
@@ -170,7 +162,8 @@ const PomodoroScreen = () => {
             console.log("PomodoroScreen _stopMetronome ",error)
         }
     }
-
+    
+    // START ALARM
     const _startAlarm = async () => {
         try {
             const status = await soundAlarm.getStatusAsync()
@@ -184,12 +177,19 @@ const PomodoroScreen = () => {
             console.log('pomorodo _startAlarme', error)
         }
     }
-
-    const _handleStartPomodoro = () => {
-        console.log('_handleStartPomodoro', selectedTime, time)
-        setIsActive(true)
+    
+    // STOP ALARM 
+    const _stopAlarm = async () => {
+        setIsFinish(false)
+        // await soundObject.loadAsync()
+        try {
+            await soundAlarm.stopAsync(alarm)
+        } catch (error) {
+            console.log("PomodoroScreen _stopAlarm ",error)
+        }
     }
 
+    // CLOSE MODAL => STOP SOUND
     const _closeModal = async () => {
         setIsFinish(false)
         setModalVisible(!modalVisible)
@@ -210,6 +210,7 @@ const PomodoroScreen = () => {
                 <Button mode='contained' style={{ marginStart:20, marginEnd:20 }} buttonColor={MODEL_COLORS.main} onPress={_handleNewPomodoro}>Nouvelle journée</Button>
             } */}
 
+            {/* SHOW POMODORO */}
             {pomodoro.filter(pomo => pomo.date === day).map(pomo => (
                 <View key={pomo.id} style={styles.viewBox}>
                     <TouchableOpacity /* key={startId + i} */ style={styles.box} onPress={() => _handlePomodoro(startId + i)} />
@@ -218,6 +219,7 @@ const PomodoroScreen = () => {
 
             <View style={{ height:50 }} />
 
+            {/* BOX SELECTED TIME DURATION */}
             <View style={styles.viewBox}>
                 <Button 
                     onPress={() => handleTimeSelection(25)} 
@@ -244,6 +246,7 @@ const PomodoroScreen = () => {
                 </Button>
             </View>
 
+            {/* MODAL + TIMER + BACKGROUND IMAGE */}
             <Portal>
                 <Modal visible={modalVisible} onDismiss={_closeModal} contentContainerStyle={[styles.modal, { justifyContent: "flex-start", padding: 0 }]}>
                     <ImageBackground source={cebu5} style={styles.backgroundImage}>
@@ -268,6 +271,7 @@ const PomodoroScreen = () => {
 
 export default PomodoroScreen
 
+// STYLES DESIGN 
 const styles = StyleSheet.create({
     date:{
         textAlign:"center",

@@ -1,51 +1,78 @@
-import React, { useState, useContext } from 'react'
-import {
-    View,
-    TextInput,
-    StyleSheet,
-} from 'react-native' 
-import { Button } from 'react-native-paper'
+import React, { useContext } from 'react'
+// REACT NATIVE 
+import { View, StyleSheet } from 'react-native' 
+// REACT NATIVE PAPER 
+import { Button,TextInput } from 'react-native-paper'
+// FIREBASE 
 import useAuthFirebase from '../../firebase/useAuthFirebase'
+// MODELS 
 import { MODEL_COLORS } from '../../models/modelColors'
+// CONTEXT 
 import { AppContext } from '../../../App'
+// FORMULAIRE 
+import useForm from '../../hooks/useForm'
+
+// VALUES 
+const INITIAL_STATE = {
+    email:'',
+    password:'',
+}
 
 const AuthScreen = () => {
+    // USER 
     const { user } = useContext(AppContext) 
-    const [email, setEmail] = useState('')
-    const [password, setPassword] = useState('')
+    // FIREBASE 
     const { _signIn, _signOut } = useAuthFirebase()
+    // FORMULAIRE 
+    const { _handleChange, values } = useForm(INITIAL_STATE)
 
+    // SIGN IN 
     const _submitForm = () => {
         // Ici, vous pouvez gérer l'envoi du formulaire
-        console.log(`Email: ${email}, Password: ${password}`)
-        _signIn(email, password)
+        console.log(`Email: ${values.email}, Password: ${values.password}`)
+        _signIn(values.email, values.password)
     }
 
+    // SIGN OUT 
     const _handleSignOut = () => {
         _signOut()
     }
 
     return (
         <View>
+
             {user.uid ? 
-                <Button mode='contained' buttonColor={MODEL_COLORS.orange} onPress={_handleSignOut} style={{ marginStart:20, marginEnd:20, marginTop:30 }}>Se deconnecter</Button>
-            : 
+
+                <Button 
+                    mode='contained' 
+                    buttonColor={MODEL_COLORS.orange} 
+                    onPress={_handleSignOut} 
+                    style={styles.buttonLogOut}
+                >Se deconnecter</Button>
+            
+                : 
                 <View>
                     <TextInput
-                        value={email}
-                        onChangeText={setEmail}
+                        value={values.email}
+                        onChangeText={(text) => _handleChange('email', text)}
                         placeholder="Email"
-                        style={{ height: 40, borderColor: 'gray', borderWidth: 1, marginTop:20, marginStart:20, marginEnd:20 , paddingStart:10 }}
+                        style={styles.input}
                     />
                     <TextInput
-                        value={password}
-                        onChangeText={setPassword}
+                        value={values.password}
+                        onChangeText={(text) => _handleChange('password', text)}
                         placeholder="Password"
                         secureTextEntry
-                        style={{ height: 40, borderColor: 'gray', borderWidth: 1, margin:20, paddingStart:10 }}
+                        style={styles.input}
                     />
                     <View style={styles.button}>
-                        <Button mode='contained' onPress={_submitForm} buttonColor={MODEL_COLORS.main}>CONNEXION</Button>
+
+                        <Button 
+                            mode='contained' 
+                            onPress={_submitForm} 
+                            buttonColor={MODEL_COLORS.main}
+                        >CONNEXION</Button>
+                    
                     </View>
                 </View>
             }
@@ -57,6 +84,19 @@ export default AuthScreen
 
 const styles = StyleSheet.create({
     button: {
-        margin:20
-    }
+        margin:20,
+    },
+    input: {
+        height: 40, 
+        marginTop:20, 
+        marginStart:20, 
+        marginEnd:20 , 
+        paddingStart:10,
+        backgroundColor:MODEL_COLORS.ultraLight,
+    },
+    buttonLogOut: {
+        marginStart:20, 
+        marginEnd:20, 
+        marginTop:30
+    },
 })
