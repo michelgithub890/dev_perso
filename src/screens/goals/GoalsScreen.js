@@ -23,7 +23,7 @@ const GoalsScreen = () => {
     // FIREBASE
     const { _readGoals, goals, _writeData, _deleteData } = useFirebase()
     // FORMULAIRE 
-    const { _handleChange, values } = useForm(INITIAL_STATE)
+    const { _handleChange, values, _refresh } = useForm(INITIAL_STATE)
     // CONST 
     const [showInput, setShowInput] = useState(false)
 
@@ -67,10 +67,12 @@ const GoalsScreen = () => {
     // SHOW HIDE TEXT INPUT 
     const _handleShowInput = () => {
         setShowInput(!showInput)
+        // REFRESH VALUES 
+        _refresh()
     }
 
     return (
-        <ScrollView>
+        <ScrollView keyboardShouldPersistTaps="always">
 
             {showInput ?
 
@@ -78,7 +80,7 @@ const GoalsScreen = () => {
 
                     {/* INPUT TITLE */}
                     <TextInput 
-                        label='titre' 
+                        placeholder='titre' 
                         value={values.title} 
                         textColor={MODEL_COLORS.main} 
                         onChangeText={(text) => _handleChange('title', text)} 

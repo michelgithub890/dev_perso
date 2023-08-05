@@ -24,7 +24,7 @@ const RewardsScreen = () => {
     // FIREBASE 
     const { _readRewards, rewards, _writeData, _deleteData } = useFirebase()
     // FORMULAIRE 
-    const { _handleChange, values } = useForm(INITIAL_STATE)
+    const { _handleChange, values, _refresh } = useForm(INITIAL_STATE)
     // CONST 
     const [showInput, setShowInput] = useState(false)
 
@@ -65,10 +65,11 @@ const RewardsScreen = () => {
     // SHOW / HIDE TEXT INPUT 
     const _handleShowInput = () => {
         setShowInput(!showInput)
+        _refresh()
     }
 
     return (
-        <ScrollView>
+        <ScrollView keyboardShouldPersistTaps="always">
 
             {showInput ? 
 
@@ -76,7 +77,7 @@ const RewardsScreen = () => {
 
                     {/* INPUT TITLE */}
                     <TextInput 
-                        label='titre' 
+                        placeholder='titre' 
                         value={values.title} 
                         textColor={MODEL_COLORS.main} 
                         onChangeText={(text) => _handleChange('title', text)} 
@@ -85,7 +86,7 @@ const RewardsScreen = () => {
 
                     {/* INPUT LINK */}
                     <TextInput 
-                        label='image' 
+                        placeholder='image' 
                         value={values.linkImage} 
                         textColor={MODEL_COLORS.main} 
                         onChangeText={(text) => _handleChange('linkImage', text)} 

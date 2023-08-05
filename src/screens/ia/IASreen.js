@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useContext } from 'react'
 // REACT NATIVE 
-import { View, Alert, StyleSheet } from 'react-native'
+import { View, Alert, StyleSheet, ScrollView } from 'react-native'
 // REACT NATIVE PAPER 
 import { Button, TextInput, Card  } from 'react-native-paper'
 // FIREBASE 
@@ -23,7 +23,7 @@ const IASreen = () => {
     // FIREBASE 
     const { _readMotivations, motivations, _writeData, _deleteData } = useFirebase()
     // FORMULAIRE 
-    const { _handleChange, values } = useForm(INITIAL_STATE) 
+    const { _handleChange, values, _refresh } = useForm(INITIAL_STATE) 
     // CONST 
     const [showInput, setShowInput] = useState(false)
 
@@ -39,7 +39,6 @@ const IASreen = () => {
         }
         _writeData(`devperso/${user.uid}/motivations`, data)
         _handleShowInput()
-        setTitle()
     }
 
     // DELETE MOTIVATION
@@ -63,10 +62,12 @@ const IASreen = () => {
     // SHOW INPUT TEXT 
     const _handleShowInput = () => {
         setShowInput(!showInput)
+        // REFRESH VALUES
+        _refresh()
     }
 
     return (
-        <View>
+        <ScrollView keyboardShouldPersistTaps="always">
 
             {showInput ? 
 
@@ -74,7 +75,7 @@ const IASreen = () => {
 
                     {/* INPUT TITLE */}
                     <TextInput 
-                        label='titre' 
+                        placeholder='titre' 
                         value={values.title} 
                         textColor={MODEL_COLORS.main} 
                         style={styles.input}
@@ -103,7 +104,13 @@ const IASreen = () => {
                 </View>
 
             :
-                <Button mode="contained" buttonColor={MODEL_COLORS.main} onPress={_handleShowInput} style={{ margin:10 }}>Ajouter</Button>
+                // BUTTON SHOW INPUT TEXT
+                <Button 
+                    mode="contained" 
+                    buttonColor={MODEL_COLORS.main} 
+                    onPress={_handleShowInput} 
+                    style={{ margin:10 }}
+                >Ajouter</Button>
             }
 
             {/* LIST MOTIVATION */}
@@ -113,7 +120,7 @@ const IASreen = () => {
                 </Card>
             ))}
 
-        </View>
+        </ScrollView>
     )
 }
 

@@ -1,4 +1,4 @@
-import React, { useContext } from 'react'
+import React, { useContext, useEffect } from 'react'
 // REACT NATIVE 
 import { View, StyleSheet } from 'react-native' 
 // REACT NATIVE PAPER 
@@ -18,22 +18,29 @@ const INITIAL_STATE = {
     password:'',
 }
 
-const AuthScreen = () => {
+const AuthScreen = ({ navigation }) => {
     // USER 
     const { user } = useContext(AppContext) 
     // FIREBASE 
-    const { _signIn, _signOut } = useAuthFirebase()
+    const { _signIn, _signOut, myRedir } = useAuthFirebase()
     // FORMULAIRE 
     const { _handleChange, values } = useForm(INITIAL_STATE)
+
+    // NAVIGATION HOME PAGE AFTER AUTHENTIFICATION
+    useEffect(() => {
+        if (myRedir === 'ok') {
+            console.log('page auth admin ', myRedir)
+            navigation.navigate('Home')
+        } 
+    },[myRedir])
 
     // SIGN IN 
     const _submitForm = () => {
         // Ici, vous pouvez gérer l'envoi du formulaire
-        console.log(`Email: ${values.email}, Password: ${values.password}`)
         _signIn(values.email, values.password)
     }
 
-    // SIGN OUT 
+    // LOG OUT 
     const _handleSignOut = () => {
         _signOut()
     }
@@ -43,6 +50,7 @@ const AuthScreen = () => {
 
             {user.uid ? 
 
+                // BUTTON LOG OUT 
                 <Button 
                     mode='contained' 
                     buttonColor={MODEL_COLORS.orange} 
@@ -52,12 +60,16 @@ const AuthScreen = () => {
             
                 : 
                 <View>
+
+                    {/* INPUT EMAIL */}
                     <TextInput
                         value={values.email}
                         onChangeText={(text) => _handleChange('email', text)}
                         placeholder="Email"
                         style={styles.input}
                     />
+
+                    {/* INPUT PASSWORD */}
                     <TextInput
                         value={values.password}
                         onChangeText={(text) => _handleChange('password', text)}
@@ -67,6 +79,7 @@ const AuthScreen = () => {
                     />
                     <View style={styles.button}>
 
+                        {/* BUTTON CONNECT */}
                         <Button 
                             mode='contained' 
                             onPress={_submitForm} 
@@ -82,6 +95,7 @@ const AuthScreen = () => {
 
 export default AuthScreen
 
+// STYLES DESIGN
 const styles = StyleSheet.create({
     button: {
         margin:20,
