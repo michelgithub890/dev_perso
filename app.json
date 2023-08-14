@@ -2,9 +2,9 @@
   "expo": {
     "name": "dev_perso",
     "slug": "dev_perso",
-    "version": "1.0.7",
+    "version": "1.0.8",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/icon2.png",
     "userInterfaceStyle": "light",
     "splash": {
       "image": "./assets/splash.png",
@@ -22,7 +22,7 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "versionCode": 7,
+      "versionCode": 8,
       "permissions": [],
       "package": "com.mitch56150.dev_perso"
     },
